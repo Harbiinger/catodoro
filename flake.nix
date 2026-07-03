@@ -2,7 +2,11 @@
   description = "Catodoro — a Django/HTMX pomodoro game where you care for a cat";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    # Use the machine's registry nixpkgs (nixpkgs-unstable), which ships
+    # prebuilt Python 3.14 packages in the binary cache. Pinning the older
+    # nixos-25.11 rev forced source builds whose test deps (astor) break on
+    # 3.14. Swap this for a specific `github:NixOS/nixpkgs/<rev>` to pin.
+    nixpkgs.url = "flake:nixpkgs";
   };
 
   outputs = { self, nixpkgs }:
@@ -14,6 +18,10 @@
 
       # Runtime Python environment. Uses nixpkgs' packaged deps (Django 5.2 LTS
       # here); the app only relies on standard Django APIs and runs on it.
+      # These are taken as-is so they resolve to prebuilt binaries from the
+      # nixpkgs cache (avoiding source builds of test-only deps like astor,
+      # which fails on Python 3.14). Keep the flake input up to date so the
+      # cache has them: `nix flake update`.
       pythonEnv = python.withPackages (ps: [
         ps.django
         ps."django-htmx"
@@ -189,11 +197,6 @@
         shellHook = ''
           uv sync
           source .venv/bin/activate
-
-          if [ -f manage.py ]; then
-            python manage.py tailwind install
-          fi
-
           echo "[v] Catodoro dev environment ready."
         '';
       };
