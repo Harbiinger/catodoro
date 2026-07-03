@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% block title %}Log in · Catodoro{% endblock %}
+
+{% block content %}
+<div class="mx-auto mt-10 max-w-sm">
+  <div class="rounded-3xl bg-white/80 p-7 shadow-lg ring-1 ring-pink-200">
+    <div class="mb-5 text-center">
+      <div class="text-4xl">🐾</div>
+      <h1 class="mt-1 text-xl font-bold text-stone-800">Welcome back</h1>
+      <p class="text-sm text-stone-500">Your cat missed you.</p>
+    </div>
+
+    {% if form.non_field_errors %}
+      <div class="mb-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 ring-1 ring-rose-200">
+        {{ form.non_field_errors.0 }}
+      </div>
+    {% endif %}
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      {% for field in form %}
+        <div>
+          <label class="mb-1 block text-xs font-medium text-stone-500">{{ field.label }}</label>
+          {% render_field field class="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-800 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-200" %}
+          {% if field.errors %}<p class="mt-1 text-xs text-rose-600">{{ field.errors.0 }}</p>{% endif %}
+        </div>
+      {% endfor %}
+      <button class="w-full rounded-xl bg-pink-500 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-600">
+        Log in
+      </button>
+    </form>
+
+    <p class="mt-4 text-center text-sm text-stone-500">
+      New here? <a href="{% url 'register' %}" class="font-semibold text-pink-600 hover:underline">Create an account</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

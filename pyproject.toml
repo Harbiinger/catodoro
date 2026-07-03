@@ -1,0 +1,16 @@
+[project]
+name = "catodoro"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "Django>=6.0,<7",
+    "uvicorn",
+    "django-tailwind[cookiecutter, honcho, reload]",
+    "django-widget-tweaks",
+    "django-ninja",
+    "requests",
+    "django-htmx",
+]
+
+[tool.uv]
+package = false

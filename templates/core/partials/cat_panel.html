@@ -1,0 +1,76 @@
+{% comment %}Pass `oob=True` when returning this inside an htmx partial response.{% endcomment %}
+<section id="cat-panel" {% if oob %}hx-swap-oob="true"{% endif %}
+  class="overflow-hidden rounded-3xl bg-white/70 shadow-lg ring-1 ring-pink-200">
+  <div class="relative flex h-64 items-center justify-center
+    {% if cat.mood == 'angry' %}bg-gradient-to-b from-slate-200 to-slate-300
+    {% elif cat.mood == 'away' %}bg-gradient-to-b from-stone-200 to-stone-300
+    {% elif cat.mood == 'hungry' %}bg-gradient-to-b from-white to-pink-100
+    {% else %}bg-gradient-to-b from-pink-50 to-pink-200{% endif %}">
+
+    {% if world.cat_visible %}
+      {# soft fur-colour glow behind the cat #}
+      <div class="pointer-events-none absolute h-36 w-36 rounded-full opacity-30 blur-2xl"
+           style="background-color: {{ cat.color_hex }}"></div>
+      <div class="relative bob text-center">
+        {% if cat.mood == 'happy' %}
+          <div class="absolute -left-8 top-2 text-2xl">💕</div>
+          <div class="absolute -right-6 top-6 text-xl">✨</div>
+        {% elif cat.mood == 'angry' %}
+          <div class="absolute -right-8 -top-2 text-2xl">💢</div>
+        {% elif cat.mood == 'hungry' %}
+          <div class="absolute -right-10 top-4 text-2xl">🍽️</div>
+        {% endif %}
+
+        {# equipped accessories float above the cat #}
+        {% if equipped %}
+          <div class="absolute -top-6 left-1/2 -translate-x-1/2 text-2xl">
+            {% for o in equipped %}{{ o.item.icon }}{% endfor %}
+          </div>
+        {% endif %}
+
+        {% include 'core/partials/cat_svg.html' with fur=cat.color_hex mood=cat.mood %}
+      </div>
+    {% else %}
+      <div class="text-center opacity-70">
+        <div class="text-7xl grayscale">🧺</div>
+        <div class="mt-2 text-3xl">🐾 . . .</div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="space-y-3 p-5">
+    <div class="flex items-baseline justify-between">
+      <h2 class="text-lg font-bold">{{ cat.name }}</h2>
+      <span class="text-sm text-stone-500 capitalize">{{ cat.mood }}</span>
+    </div>
+    <p class="text-sm text-stone-600">{{ cat.name }} {{ world.cat_blurb }}</p>
+
+    <div>
+      <div class="mb-1 flex justify-between text-xs font-medium text-stone-500">
+        <span>😊 Happiness</span><span>{{ cat.happiness|floatformat:0 }}%</span>
+      </div>
+      <div class="h-2.5 w-full overflow-hidden rounded-full bg-stone-200">
+        <div class="h-full rounded-full bg-rose-400" style="width: {{ cat.happiness|floatformat:0 }}%"></div>
+      </div>
+    </div>
+    <div>
+      <div class="mb-1 flex justify-between text-xs font-medium text-stone-500">
+        <span>🍖 Fullness</span><span>{{ cat.satiety|floatformat:0 }}%</span>
+      </div>
+      <div class="h-2.5 w-full overflow-hidden rounded-full bg-stone-200">
+        <div class="h-full rounded-full bg-pink-400" style="width: {{ cat.satiety|floatformat:0 }}%"></div>
+      </div>
+    </div>
+    {% if page == 'shop' %}
+      <a href="{% url 'dashboard' %}"
+         class="mt-1 block rounded-xl bg-pink-500 py-2 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-pink-600">
+        ← Back to quests
+      </a>
+    {% else %}
+      <a href="{% url 'shop' %}"
+         class="mt-1 block rounded-xl bg-pink-500 py-2 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-pink-600">
+        Care for {{ cat.name }} →
+      </a>
+    {% endif %}
+  </div>
+</section>

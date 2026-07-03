@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Catodoro{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { display: ['ui-rounded', 'system-ui', 'sans-serif'] } } }
+    }
+  </script>
+  <style>
+    @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    .bob { animation: bob 3s ease-in-out infinite; }
+    @keyframes pop { 0%{transform:scale(.9);opacity:0} 100%{transform:scale(1);opacity:1} }
+    .toast { animation: pop .18s ease-out; }
+    /* roulette highlight for the random-quest picker */
+    .js-task-row { transition: box-shadow .1s ease, transform .1s ease; }
+    .roulette-tick { box-shadow: 0 0 0 3px #f9a8d4; }
+    .roulette-win { box-shadow: 0 0 0 4px #ec4899; transform: scale(1.03); }
+    #roulette-die { display: inline-block; transition: transform .12s ease; }
+  </style>
+</head>
+<body class="min-h-full bg-gradient-to-b from-pink-100 via-white to-white bg-fixed text-stone-700 font-display"
+      hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  <header class="sticky top-0 z-20 border-b border-pink-100 bg-white/85 backdrop-blur">
+    <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+      <a href="{% url 'dashboard' %}" class="flex items-center gap-2 text-xl font-bold text-stone-800">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-7 w-7 text-pink-500">
+          <ellipse cx="6" cy="9.5" rx="2.1" ry="2.7" transform="rotate(-18 6 9.5)"/>
+          <ellipse cx="10" cy="6.2" rx="2.1" ry="2.9"/>
+          <ellipse cx="14" cy="6.2" rx="2.1" ry="2.9"/>
+          <ellipse cx="18" cy="9.5" rx="2.1" ry="2.7" transform="rotate(18 18 9.5)"/>
+          <path d="M12 11c-2.7 0-5 2-5 4.4 0 1.9 1.6 2.9 3.3 2.9.7 0 1.2-.2 1.7-.2s1 .2 1.7.2c1.7 0 3.3-1 3.3-2.9C17 13 14.7 11 12 11z"/>
+        </svg> Catodoro
+      </a>
+      <div class="flex items-center gap-2 sm:gap-4">
+        {% if user.is_authenticated %}
+          <div class="flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1.5 text-sm font-semibold shadow-sm ring-1 ring-pink-200">
+            <span>🪙</span><span id="coin-count">{{ player.coins }}</span>
+          </div>
+          <span class="hidden text-sm text-stone-500 sm:inline">{{ user.email }}</span>
+          <a href="{% url 'setup' %}" title="Cat settings"
+             class="rounded-full bg-white/60 px-3 py-1.5 text-sm ring-1 ring-pink-200 transition hover:bg-white">⚙</a>
+          <form action="{% url 'logout' %}" method="post" class="inline">
+            {% csrf_token %}
+            <button type="submit"
+              class="rounded-full bg-white/60 px-3 py-1.5 text-sm font-medium text-stone-600 ring-1 ring-pink-200 transition hover:bg-white">
+              Log out
+            </button>
+          </form>
+        {% else %}
+          <a href="{% url 'login' %}" class="rounded-full px-3 py-1.5 text-sm font-medium text-stone-600 hover:bg-white">Log in</a>
+          <a href="{% url 'register' %}"
+             class="rounded-full bg-pink-500 px-4 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-600">Sign up</a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <div id="toasts" class="pointer-events-none fixed right-4 top-20 z-30 flex w-72 flex-col gap-2">
+    {% include 'core/partials/toasts.html' %}
+  </div>
+
+  <main class="mx-auto max-w-5xl px-4 py-6">
+    {% block content %}{% endblock %}
+  </main>
+
+  <script>
+    // auto-dismiss toasts a few seconds after they appear
+    function armToasts() {
+      document.querySelectorAll('#toasts .toast:not([data-armed])').forEach(function (el) {
+        el.setAttribute('data-armed', '1');
+        setTimeout(function () { el.style.transition = 'opacity .4s'; el.style.opacity = '0'; }, 3200);
+        setTimeout(function () { el.remove(); }, 3700);
+      });
+    }
+    document.addEventListener('DOMContentLoaded', armToasts);
+    document.body.addEventListener('htmx:afterSwap', armToasts);
+  </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/bin/python manage.py runserver 127.0.0.1:8899)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8899/)",
+      "Bash(echo \"dashboard: $\\(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8899/\\)\")",
+      "Bash(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8899/shop/)",
+      "Bash(echo \"shop: $\\(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8899/shop/\\)\")",
+      "Bash(curl -s http://127.0.0.1:8899/)",
+      "Bash(pkill -f \"manage.py runserver 127.0.0.1:8899\")"
+    ]
+  }
+}

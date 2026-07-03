@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}{% if first_time %}Meet your cat{% else %}Cat settings{% endif %} · Catodoro{% endblock %}
+
+{% block content %}
+<div class="mx-auto mt-8 max-w-lg">
+  <div class="rounded-3xl bg-white/80 p-7 shadow-lg ring-1 ring-pink-200">
+    <div class="mb-5 text-center">
+      <h1 class="text-xl font-bold text-stone-800">
+        {% if first_time %}Meet your new cat 🐾{% else %}Cat settings{% endif %}
+      </h1>
+      <p class="text-sm text-stone-500">
+        {% if first_time %}Give them a name and pick their colour to get started.
+        {% else %}Rename or recolour your companion.{% endif %}
+      </p>
+    </div>
+
+    <!-- live preview -->
+    <div class="mb-6 flex flex-col items-center">
+      <div class="relative flex h-44 w-44 items-center justify-center">
+        <div id="preview-glow" class="absolute h-28 w-28 rounded-full opacity-30 blur-2xl"
+             style="background-color: {{ cat.color_hex }}"></div>
+        <div id="preview-cat" class="relative">
+          {% include 'core/partials/cat_svg.html' with fur=cat.color_hex mood='content' %}
+        </div>
+      </div>
+      <p id="preview-name" class="mt-1 text-lg font-bold text-stone-700">{{ cat.name }}</p>
+    </div>
+
+    <form method="post" class="space-y-5">
+      {% csrf_token %}
+
+      <div>
+        <label class="mb-1 block text-xs font-medium text-stone-500">Name</label>
+        {{ form.name }}
+        {% if form.name.errors %}<p class="mt-1 text-xs text-rose-600">{{ form.name.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="mb-2 block text-xs font-medium text-stone-500">Colour</label>
+        <div class="flex flex-wrap gap-3">
+          {% for key, label, hex in colors %}
+            <label class="cursor-pointer" title="{{ label }}">
+              <input type="radio" name="color" value="{{ key }}" class="peer sr-only"
+                     data-hex="{{ hex }}" {% if cat.color == key %}checked{% endif %}>
+              <span class="block h-10 w-10 rounded-full ring-2 ring-transparent ring-offset-2 ring-offset-white transition peer-checked:ring-pink-500 hover:scale-105"
+                    style="background-color: {{ hex }}"></span>
+            </label>
+          {% endfor %}
+        </div>
+        {% if form.color.errors %}<p class="mt-1 text-xs text-rose-600">{{ form.color.errors.0 }}</p>{% endif %}
+      </div>
+
+      <button class="w-full rounded-xl bg-pink-500 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-600">
+        {% if first_time %}Adopt {% else %}Save{% endif %}
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+(function () {
+  var glow = document.getElementById('preview-glow');
+  var nameOut = document.getElementById('preview-name');
+  var nameIn = document.querySelector('input[name="name"]');
+  var furParts = document.querySelectorAll('#preview-cat .cat-fur');
+  document.querySelectorAll('input[name="color"]').forEach(function (r) {
+    r.addEventListener('change', function () {
+      glow.style.backgroundColor = r.dataset.hex;
+      furParts.forEach(function (el) { el.setAttribute('fill', r.dataset.hex); });
+    });
+  });
+  if (nameIn) {
+    nameIn.addEventListener('input', function () {
+      nameOut.textContent = nameIn.value.trim() || 'Your cat';
+    });
+  }
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% comment %}
+Colored SVG cat. Parameters:
+  fur  – fill colour (hex) for the fur; elements carry class "cat-fur"
+         so it can also be recoloured live via JS (setup preview).
+  mood – happy | content | hungry | angry (angry = back turned).
+The "away" mood is handled by the caller (shows an empty basket instead).
+{% endcomment %}
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="h-44 w-44 select-none">
+  {% if mood == 'angry' %}
+    {# back turned – no face #}
+    <g stroke="rgba(0,0,0,.16)" stroke-width="3" stroke-linejoin="round">
+      <path class="cat-fur" fill="{{ fur }}" d="M62,168 C18,158 26,104 52,106 C34,120 46,152 82,158 Z"/>
+      <ellipse class="cat-fur" fill="{{ fur }}" cx="110" cy="150" rx="60" ry="54"/>
+      <circle class="cat-fur" fill="{{ fur }}" cx="110" cy="82" r="46"/>
+      <path class="cat-fur" fill="{{ fur }}" d="M74,58 L62,16 L108,44 Z"/>
+      <path class="cat-fur" fill="{{ fur }}" d="M146,58 L158,16 L112,44 Z"/>
+    </g>
+    <path d="M110,50 V150" stroke="rgba(0,0,0,.08)" stroke-width="4" fill="none" stroke-linecap="round"/>
+  {% else %}
+    <g stroke="rgba(0,0,0,.16)" stroke-width="3" stroke-linejoin="round">
+      {# tail #}
+      <path class="cat-fur" fill="{{ fur }}" d="M156,182 C206,176 204,120 172,112 C193,126 178,160 150,160 Z"/>
+      {# body + paws #}
+      <ellipse class="cat-fur" fill="{{ fur }}" cx="110" cy="166" rx="56" ry="46"/>
+      <ellipse class="cat-fur" fill="{{ fur }}" cx="86" cy="200" rx="16" ry="11"/>
+      <ellipse class="cat-fur" fill="{{ fur }}" cx="134" cy="200" rx="16" ry="11"/>
+      {# head #}
+      <circle class="cat-fur" fill="{{ fur }}" cx="110" cy="92" r="54"/>
+      {# ears #}
+      <path class="cat-fur" fill="{{ fur }}" d="M66,64 L56,18 L104,52 Z"/>
+      <path class="cat-fur" fill="{{ fur }}" d="M154,64 L164,18 L116,52 Z"/>
+    </g>
+    {# inner ears #}
+    <path fill="#f6b6c8" d="M70,56 L64,28 L96,50 Z"/>
+    <path fill="#f6b6c8" d="M150,56 L156,28 L124,50 Z"/>
+    {# whiskers #}
+    <g stroke="rgba(0,0,0,.28)" stroke-width="2" fill="none" stroke-linecap="round">
+      <path d="M58,96 H24 M60,106 H26 M62,116 H30"/>
+      <path d="M162,96 H196 M160,106 H194 M158,116 H190"/>
+    </g>
+
+    {% if mood == 'happy' %}
+      <circle cx="74" cy="107" r="9" fill="#f9a8d4" opacity=".55"/>
+      <circle cx="146" cy="107" r="9" fill="#f9a8d4" opacity=".55"/>
+      <path d="M78,93 q10,-12 20,0 M122,93 q10,-12 20,0" stroke="#22303f" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M104,105 h12 l-6,7 Z" fill="#e07a90"/>
+      <path d="M92,116 q18,16 36,0" stroke="#22303f" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    {% elif mood == 'hungry' %}
+      <circle cx="88" cy="94" r="8" fill="#22303f" stroke="#fff" stroke-width="1.5"/><circle cx="90.5" cy="91" r="2.5" fill="#fff"/>
+      <circle cx="132" cy="94" r="8" fill="#22303f" stroke="#fff" stroke-width="1.5"/><circle cx="134.5" cy="91" r="2.5" fill="#fff"/>
+      <path d="M104,106 h12 l-6,7 Z" fill="#e07a90"/>
+      <ellipse cx="110" cy="123" rx="9" ry="7" fill="#7a3b46"/>
+      <ellipse cx="110" cy="126" rx="5" ry="3.5" fill="#f28ea0"/>
+    {% else %}
+      {# content #}
+      <circle cx="88" cy="93" r="8" fill="#22303f" stroke="#fff" stroke-width="1.5"/><circle cx="90.5" cy="90" r="2.5" fill="#fff"/>
+      <circle cx="132" cy="93" r="8" fill="#22303f" stroke="#fff" stroke-width="1.5"/><circle cx="134.5" cy="90" r="2.5" fill="#fff"/>
+      <path d="M104,105 h12 l-6,7 Z" fill="#e07a90"/>
+      <path d="M110,113 q-9,9 -17,3 M110,113 q9,9 17,3" stroke="#22303f" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    {% endif %}
+  {% endif %}
+</svg>
