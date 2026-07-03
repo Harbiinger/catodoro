@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
@@ -19,7 +17,7 @@ _INPUT = (
 class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ['title', 'deadline', 'estimated_pomodoros', 'reward', 'penalty']
+        fields = ['title', 'deadline', 'estimated_pomodoros', 'difficulty']
         widgets = {
             'title': forms.TextInput(
                 attrs={'class': _INPUT, 'placeholder': 'Finish the quarterly report'}
@@ -29,20 +27,15 @@ class TaskForm(forms.ModelForm):
                 format='%Y-%m-%dT%H:%M',
             ),
             'estimated_pomodoros': forms.NumberInput(attrs={'class': _INPUT, 'min': 1}),
-            'reward': forms.NumberInput(attrs={'class': _INPUT, 'min': 0}),
-            'penalty': forms.NumberInput(attrs={'class': _INPUT, 'min': 0}),
+            'difficulty': forms.Select(attrs={'class': _INPUT}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         deadline = self.fields['deadline']
         deadline.input_formats = ['%Y-%m-%dT%H:%M']
-        # Can't schedule in the past; default to a few hours from now so the
-        # date *and* time are pre-filled and same-day deadlines are obvious.
-        now = timezone.localtime()
-        deadline.widget.attrs['min'] = now.strftime('%Y-%m-%dT%H:%M')
-        if not self.is_bound:
-            deadline.initial = now + timedelta(hours=3)
+        # Start empty; just prevent picking a time in the past.
+        deadline.widget.attrs['min'] = timezone.localtime().strftime('%Y-%m-%dT%H:%M')
 
     def clean_deadline(self):
         deadline = self.cleaned_data['deadline']

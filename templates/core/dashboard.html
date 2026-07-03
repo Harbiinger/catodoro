@@ -174,5 +174,29 @@
 
   render();
 })();
+
+// --- live "stakes" preview for the New Quest form ------------------------
+// Mirrors core.models.rewards_for so the player sees the coins before saving.
+(function () {
+  var BASE = { easy: [10, 8], medium: [20, 16], hard: [35, 28] };
+  function mult(h) { if (h <= 3) return 1.5; if (h <= 24) return 1.25; if (h <= 72) return 1.0; return 0.8; }
+  function update() {
+    var diff = document.querySelector('#task-section select[name="difficulty"]');
+    var dl = document.querySelector('#task-section input[name="deadline"]');
+    var out = document.getElementById('reward-preview');
+    if (!diff || !dl || !out) return;
+    var base = BASE[diff.value] || BASE.medium;
+    var hours = 24;
+    if (dl.value) hours = Math.max(0, (new Date(dl.value).getTime() - Date.now()) / 3600000);
+    var m = mult(hours);
+    out.textContent = '+' + Math.round(base[0] * m) + ' / −' + Math.round(base[1] * m) + ' 🪙';
+  }
+  document.body.addEventListener('input', function (e) {
+    if (e.target.matches && e.target.matches('#task-section select[name="difficulty"], #task-section input[name="deadline"]')) update();
+  });
+  document.body.addEventListener('htmx:afterSwap', update);
+  document.addEventListener('DOMContentLoaded', update);
+  update();
+})();
 </script>
 {% endblock %}

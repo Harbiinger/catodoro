@@ -17,18 +17,23 @@ isn't rendered twice.{% endcomment %}
       {{ form.title }}
       {% if form.title.errors %}<p class="mt-1 text-xs text-rose-600">{{ form.title.errors.0 }}</p>{% endif %}
     </div>
-    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      <label class="block text-xs font-medium text-stone-500">Deadline
-        {{ form.deadline }}
-        {% if form.deadline.errors %}<span class="text-rose-600">{{ form.deadline.errors.0 }}</span>{% endif %}
-      </label>
+    <label class="block text-xs font-medium text-stone-500">Deadline
+      {{ form.deadline }}
+      {% if form.deadline.errors %}<span class="text-rose-600">{{ form.deadline.errors.0 }}</span>{% endif %}
+    </label>
+    <div class="grid grid-cols-2 gap-3">
       <label class="block text-xs font-medium text-stone-500">Pomodoros {{ form.estimated_pomodoros }}</label>
-      <label class="block text-xs font-medium text-stone-500">Reward 🪙 {{ form.reward }}</label>
-      <label class="block text-xs font-medium text-stone-500">Penalty 🪙 {{ form.penalty }}</label>
+      <label class="block text-xs font-medium text-stone-500">Difficulty {{ form.difficulty }}</label>
     </div>
-    <button class="rounded-xl bg-pink-500 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-600">
-      + Add quest
-    </button>
+    <div class="flex items-center justify-between">
+      <p class="text-xs text-stone-500">Stakes:
+        <span id="reward-preview" class="font-semibold text-pink-700">…</span>
+        <span class="text-stone-400">(harder + sooner = more)</span>
+      </p>
+      <button class="rounded-xl bg-pink-500 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-600">
+        + Add quest
+      </button>
+    </div>
   </form>
 </section>
 
@@ -44,7 +49,8 @@ isn't rendered twice.{% endcomment %}
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
           <h4 class="truncate font-semibold text-stone-800">{{ task.title }}</h4>
-          <p class="mt-0.5 text-xs {% if task.is_overdue %}text-rose-600{% else %}text-stone-500{% endif %}">
+          <p class="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs {% if task.is_overdue %}text-rose-600{% else %}text-stone-500{% endif %}">
+            <span class="rounded-full bg-pink-100 px-1.5 font-medium text-pink-700">{{ task.difficulty_icon }} {{ task.get_difficulty_display }}</span>
             ⏳ {{ task.deadline|date:"M j, g:i A" }} · in {{ task.deadline|timeuntil }} · +{{ task.reward }}/−{{ task.penalty }} 🪙
           </p>
         </div>
