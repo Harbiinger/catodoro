@@ -193,6 +193,21 @@
                 RestartSec = 2;
               };
             };
+
+            # `sudo catodoro-manage <cmd>` on the server, e.g. `createsuperuser`.
+            # Runs the command as a transient unit sharing the service's dynamic
+            # user (User=catodoro) and its state directory, so it touches the
+            # same database with the right permissions.
+            environment.systemPackages = [
+              (pkgs.writeShellScriptBin "catodoro-manage" ''
+                exec systemd-run --pty --wait --collect \
+                  --property=User=catodoro \
+                  --property=DynamicUser=yes \
+                  --property=StateDirectory=catodoro \
+                  --setenv=CATODORO_STATE_DIR=/var/lib/catodoro \
+                  ${cfg.package}/bin/catodoro-manage "$@"
+              '')
+            ];
           };
         };
 
