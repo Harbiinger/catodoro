@@ -69,11 +69,15 @@
 
       appHome = "${appSrc}/share/catodoro";
 
-      # Shared shell preamble for the wrappers.
+      # Shared shell preamble for the wrappers. Both the server and the manage
+      # wrapper resolve the SQLite DB to the same writable location, so
+      # `catodoro-manage` operates on the same database the server serves.
       commonEnv = ''
         export DJANGO_SETTINGS_MODULE=catodoro.settings
         export PYTHONPATH=${appHome}''${PYTHONPATH:+:$PYTHONPATH}
         export CATODORO_STATIC_ROOT=''${CATODORO_STATIC_ROOT:-${appHome}/staticfiles}
+        export CATODORO_STATE_DIR=''${CATODORO_STATE_DIR:-$PWD}
+        export CATODORO_DB_PATH=''${CATODORO_DB_PATH:-$CATODORO_STATE_DIR/db.sqlite3}
       '';
 
       manageBin = pkgs.writeShellApplication {
@@ -92,12 +96,10 @@
         text = ''
           ${commonEnv}
           export CATODORO_DEBUG=''${CATODORO_DEBUG:-False}
-          STATE_DIR=''${CATODORO_STATE_DIR:-$PWD}
-          export CATODORO_DB_PATH=''${CATODORO_DB_PATH:-$STATE_DIR/db.sqlite3}
           BIND=''${CATODORO_BIND:-0.0.0.0:8000}
           WORKERS=''${CATODORO_WORKERS:-3}
 
-          mkdir -p "$STATE_DIR"
+          mkdir -p "$CATODORO_STATE_DIR"
           echo "catodoro: migrating (db: $CATODORO_DB_PATH)"
           python ${appHome}/manage.py migrate --noinput
           echo "catodoro: serving on $BIND ($WORKERS workers)"
@@ -120,9 +122,16 @@
       };
 
       # `nix run` boots the server (migrations run automatically).
-      apps.${system}.default = {
-        type = "app";
-        program = "${catodoro}/bin/catodoro-server";
+      # `nix run .#manage -- <cmd>` runs manage.py (e.g. createsuperuser).
+      apps.${system} = {
+        default = {
+          type = "app";
+          program = "${catodoro}/bin/catodoro-server";
+        };
+        manage = {
+          type = "app";
+          program = "${catodoro}/bin/catodoro-manage";
+        };
       };
 
       # Deploy on a NixOS server: add this module and set services.catodoro.enable.
