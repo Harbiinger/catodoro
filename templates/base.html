@@ -43,6 +43,8 @@
             <span>🪙</span><span id="coin-count">{{ player.coins }}</span>
           </div>
           <span class="hidden text-sm text-stone-500 sm:inline">{{ user.email }}</span>
+          <a href="{% url 'achievements' %}" title="Achievements"
+             class="rounded-full bg-white/60 px-3 py-1.5 text-sm ring-1 ring-pink-200 transition hover:bg-white">🏆</a>
           <a href="{% url 'setup' %}" title="Cat settings"
              class="rounded-full bg-white/60 px-3 py-1.5 text-sm ring-1 ring-pink-200 transition hover:bg-white">⚙</a>
           <form action="{% url 'logout' %}" method="post" class="inline">

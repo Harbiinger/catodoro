@@ -7,7 +7,24 @@ from django.views.decorators.http import require_POST
 
 from . import services
 from .forms import CatSetupForm, RegisterForm, TaskForm
-from .models import CAT_COLORS, COINS_PER_POMODORO, Cat, OwnedItem, Player, ShopItem, Task
+from .models import (
+    CAT_COLORS,
+    COINS_PER_POMODORO,
+    Achievement,
+    Cat,
+    OwnedItem,
+    Player,
+    ShopItem,
+    Task,
+    UnlockedAchievement,
+)
+
+
+def _award_achievements(request, world):
+    """Unlock any newly-earned achievements and toast them to the player."""
+    for ach in services.check_achievements(request.user, world.player, world.cat):
+        bonus = f' (+{ach.reward_coins} 🪙)' if ach.reward_coins else ''
+        messages.success(request, f'🏆 Achievement unlocked: {ach.name}{bonus}')
 
 
 # ---------------------------------------------------------------------------
@@ -64,6 +81,7 @@ def _history(user):
 
 
 def _dashboard_context(request, world, form=None):
+    _award_achievements(request, world)
     return services.context(
         world,
         tasks=_active_tasks(request.user),
@@ -150,6 +168,7 @@ def _owned_map(user):
 
 
 def _shop_context(request, world):
+    _award_achievements(request, world)
     owned = _owned_map(request.user)
     items = list(ShopItem.objects.all())
     for it in items:
@@ -201,6 +220,7 @@ def buy_item(request, item_id):
         if item.category == ShopItem.FOOD:
             owned.quantity += 1
             owned.save(update_fields=['quantity'])
+    world.player.record_purchase(item)
     messages.success(request, f'Bought {item.icon} {item.name}!')
     return _render_shop(request, world)
 
@@ -244,3 +264,33 @@ def toggle_equip(request, owned_id):
     owned.equipped = not owned.equipped
     owned.save(update_fields=['equipped'])
     return _render_shop(request, world)
+
+
+# ---------------------------------------------------------------------------
+# achievements
+# ---------------------------------------------------------------------------
+@login_required
+def achievements(request):
+    world = services.sync_world(request.user)
+    if not world.cat.configured:
+        return redirect('setup')
+    _award_achievements(request, world)
+
+    unlocked = {
+        u.achievement_id: u
+        for u in UnlockedAchievement.objects.filter(user=request.user)
+    }
+    rows = []
+    for ach in Achievement.objects.filter(active=True):
+        value = services.metric_value(request.user, ach, world.player, world.cat)
+        pct = min(100, round(100 * value / ach.threshold)) if ach.threshold else 100
+        rows.append({
+            'ach': ach,
+            'value': int(value),
+            'pct': pct,
+            'unlocked': unlocked.get(ach.id),
+        })
+    rows.sort(key=lambda r: (r['unlocked'] is None, -r['pct']))
+    return render(request, 'core/achievements.html', services.context(
+        world, rows=rows, unlocked_count=len(unlocked), total_count=len(rows),
+    ))

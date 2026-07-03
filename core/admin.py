@@ -2,7 +2,16 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 from .forms import RegisterForm
-from .models import Cat, OwnedItem, Player, ShopItem, Task, User
+from .models import (
+    Achievement,
+    Cat,
+    OwnedItem,
+    Player,
+    ShopItem,
+    Task,
+    UnlockedAchievement,
+    User,
+)
 
 
 @admin.register(User)
@@ -22,8 +31,35 @@ class UserAdmin(BaseUserAdmin):
     )
 
 
+@admin.register(Achievement)
+class AchievementAdmin(admin.ModelAdmin):
+    list_display = ('icon', 'name', 'rarity', 'metric', 'threshold', 'category',
+                    'item', 'reward_coins', 'active')
+    list_display_links = ('name',)
+    list_filter = ('rarity', 'metric', 'active')
+    list_editable = ('active',)
+    search_fields = ('name', 'description')
+    autocomplete_fields = ('item',)
+    fields = ('name', 'description', 'icon', 'rarity', 'metric', 'threshold',
+              'category', 'item', 'reward_coins', 'active')
+
+
+@admin.register(UnlockedAchievement)
+class UnlockedAchievementAdmin(admin.ModelAdmin):
+    list_display = ('user', 'achievement', 'unlocked_at')
+    list_filter = ('achievement',)
+    search_fields = ('user__email', 'achievement__name')
+    readonly_fields = ('user', 'achievement', 'unlocked_at')
+
+
+@admin.register(ShopItem)
+class ShopItemAdmin(admin.ModelAdmin):
+    list_display = ('icon', 'name', 'category', 'price')
+    list_filter = ('category',)
+    search_fields = ('name',)
+
+
 admin.site.register(Player)
 admin.site.register(Cat)
 admin.site.register(Task)
-admin.site.register(ShopItem)
 admin.site.register(OwnedItem)

@@ -23,6 +23,8 @@ urlpatterns = [
     path('tasks/<int:task_id>/complete/', views.complete_task, name='complete_task'),
     path('tasks/<int:task_id>/abandon/', views.abandon_task, name='abandon_task'),
 
+    path('achievements/', views.achievements, name='achievements'),
+
     path('shop/', views.shop, name='shop'),
     path('shop/<int:item_id>/buy/', views.buy_item, name='buy_item'),
     path('care/feed/<int:owned_id>/', views.feed_cat, name='feed_cat'),
