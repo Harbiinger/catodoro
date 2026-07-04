@@ -3,6 +3,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
+from django.templatetags.static import static
 from django.views.decorators.http import require_POST
 
 from . import services
@@ -63,9 +64,16 @@ def setup(request):
             return redirect('dashboard')
     else:
         form = CatSetupForm(instance=cat)
+    # content-pose image URL per colour that has an image set (a "cat model");
+    # colours absent from this map fall back to the drawn SVG in the preview.
+    model_images = {
+        color: static(f'cats/{color}/{color}_content.png')
+        for color in Cat.IMAGE_COLORS
+    }
     return render(request, 'core/setup.html', {
         'form': form, 'cat': cat, 'player': player,
         'colors': CAT_COLORS, 'first_time': first_time,
+        'model_images': model_images,
     })
 
 
@@ -80,7 +88,7 @@ def _history(user):
     return Task.objects.filter(user=user).exclude(status=Task.STATUS_ACTIVE)[:12]
 
 
-def _dashboard_context(request, world, form=None):
+def _dashboard_context(request, world, form=None, emote=None):
     _award_achievements(request, world)
     return services.context(
         world,
@@ -88,6 +96,7 @@ def _dashboard_context(request, world, form=None):
         history=_history(request.user),
         form=form or TaskForm(),
         coins_per_pomodoro=COINS_PER_POMODORO,
+        emote_path=world.cat.image_for(emote),
     )
 
 
@@ -99,7 +108,8 @@ def dashboard(request):
     world = services.sync_world(request.user)
     if not world.cat.configured:
         return redirect('setup')
-    return render(request, 'core/dashboard.html', _dashboard_context(request, world))
+    emote = 'quest_failed' if world.just_failed else None
+    return render(request, 'core/dashboard.html', _dashboard_context(request, world, emote=emote))
 
 
 @login_required
@@ -157,7 +167,7 @@ def abandon_task(request, task_id):
         task.fail(world.player, world.cat)
     messages.error(request, f'You abandoned "{task.title}". The cat is not pleased.')
     return render(request, 'core/partials/task_section.html',
-                  _dashboard_context(request, world))
+                  _dashboard_context(request, world, emote='quest_failed'))
 
 
 # ---------------------------------------------------------------------------
@@ -167,7 +177,7 @@ def _owned_map(user):
     return {o.item_id: o for o in OwnedItem.objects.filter(user=user).select_related('item')}
 
 
-def _shop_context(request, world):
+def _shop_context(request, world, emote=None):
     _award_achievements(request, world)
     owned = _owned_map(request.user)
     items = list(ShopItem.objects.all())
@@ -190,6 +200,7 @@ def _shop_context(request, world):
         pantry=[o for o in owned_items if o.item.category == ShopItem.FOOD and o.quantity > 0],
         toys_owned=[o for o in owned_items if o.item.category == ShopItem.TOY],
         accessories_owned=[o for o in owned_items if o.item.category == ShopItem.ACCESSORY],
+        emote_path=world.cat.image_for(emote),
     )
 
 
@@ -201,8 +212,9 @@ def shop(request):
     return render(request, 'core/shop.html', _shop_context(request, world))
 
 
-def _render_shop(request, world):
-    return render(request, 'core/partials/shop_body.html', _shop_context(request, world))
+def _render_shop(request, world, emote=None):
+    return render(request, 'core/partials/shop_body.html',
+                  _shop_context(request, world, emote=emote))
 
 
 @login_required
@@ -239,7 +251,7 @@ def feed_cat(request, owned_id):
     owned.save(update_fields=['quantity'])
     world.cat.adjust(happiness=owned.item.happiness_boost, satiety=owned.item.satiety_boost)
     messages.success(request, f'{world.cat.name} enjoyed the {owned.item.name}! 😋')
-    return _render_shop(request, world)
+    return _render_shop(request, world, emote='gift')
 
 
 @login_required
@@ -251,7 +263,7 @@ def play_toy(request, owned_id):
     )
     world.cat.adjust(happiness=owned.item.happiness_boost)
     messages.success(request, f'{world.cat.name} had fun with the {owned.item.name}! 🧶')
-    return _render_shop(request, world)
+    return _render_shop(request, world, emote='gift')
 
 
 @login_required

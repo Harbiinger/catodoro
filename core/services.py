@@ -45,6 +45,7 @@ class World:
     def __init__(self, player: Player, cat: Cat):
         self.player = player
         self.cat = cat
+        self.just_failed = 0  # tasks auto-failed during this request's sync
 
     @property
     def cat_face(self) -> str:
@@ -68,10 +69,12 @@ def sync_world(user) -> World:
     overdue = Task.objects.filter(
         user=user, status=Task.STATUS_ACTIVE, deadline__lt=_now()
     )
+    world = World(player, cat)
     for task in overdue:
         task.fail(player, cat)
+        world.just_failed += 1
 
-    return World(player, cat)
+    return world
 
 
 def _touch_login_streak(player: Player):

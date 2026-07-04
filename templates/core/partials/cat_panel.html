@@ -1,3 +1,4 @@
+{% load static %}
 {% comment %}Pass `oob=True` when returning this inside an htmx partial response.{% endcomment %}
 <section id="cat-panel" {% if oob %}hx-swap-oob="true"{% endif %}
   class="overflow-hidden rounded-3xl bg-white/70 shadow-lg ring-1 ring-pink-200">
@@ -12,23 +13,37 @@
       <div class="pointer-events-none absolute h-36 w-36 rounded-full opacity-30 blur-2xl"
            style="background-color: {{ cat.color_hex }}"></div>
       <div class="relative bob text-center">
-        {% if cat.mood == 'happy' %}
-          <div class="absolute -left-8 top-2 text-2xl">💕</div>
-          <div class="absolute -right-6 top-6 text-xl">✨</div>
-        {% elif cat.mood == 'angry' %}
-          <div class="absolute -right-8 -top-2 text-2xl">💢</div>
-        {% elif cat.mood == 'hungry' %}
-          <div class="absolute -right-10 top-4 text-2xl">🍽️</div>
+        {% if not cat.mood_image %}
+          {# emoji mood accents only for the drawn SVG cat; the PNGs express it #}
+          {% if cat.mood == 'happy' %}
+            <div class="absolute -left-8 top-2 text-2xl">💕</div>
+            <div class="absolute -right-6 top-6 text-xl">✨</div>
+          {% elif cat.mood == 'angry' %}
+            <div class="absolute -right-8 -top-2 text-2xl">💢</div>
+          {% elif cat.mood == 'hungry' %}
+            <div class="absolute -right-10 top-4 text-2xl">🍽️</div>
+          {% endif %}
         {% endif %}
 
         {# equipped accessories float above the cat #}
         {% if equipped %}
-          <div class="absolute -top-6 left-1/2 -translate-x-1/2 text-2xl">
+          <div class="absolute -top-6 left-1/2 -translate-x-1/2 z-10 text-2xl">
             {% for o in equipped %}{{ o.item.icon }}{% endfor %}
           </div>
         {% endif %}
 
-        {% include 'core/partials/cat_svg.html' with fur=cat.color_hex mood=cat.mood %}
+        <div class="relative mx-auto h-44 w-44">
+          {% if cat.mood_image %}
+            <img src="{% static cat.mood_image %}" alt="{{ cat.name }}"
+                 class="h-44 w-44 select-none object-contain">
+          {% else %}
+            {% include 'core/partials/cat_svg.html' with fur=cat.color_hex mood=cat.mood %}
+          {% endif %}
+          {% if emote_path %}
+            <img id="cat-emote" src="{% static emote_path %}" alt=""
+                 class="pointer-events-none absolute inset-0 h-44 w-44 select-none object-contain transition-opacity duration-500">
+          {% endif %}
+        </div>
       </div>
     {% else %}
       <div class="text-center opacity-70">

@@ -17,7 +17,7 @@ from django.utils import timezone
 # Tunable game balance
 # ---------------------------------------------------------------------------
 COINS_PER_POMODORO = 5          # earned every time a focus session completes
-STARTING_COINS = 40             # so the shop isn't empty-handed on day one
+STARTING_COINS = 15             # so the shop isn't empty-handed on day one
 
 # Stat decay, expressed as points lost per hour of real time.
 SATIETY_DECAY_PER_HOUR = 6.0    # ~16h to go from full to starving
@@ -73,7 +73,7 @@ MOOD_HUNGRY_SATIETY = 30       # otherwise fine but needs feeding
 
 # Fur colours the player can pick during setup: (key, label, glow hex).
 CAT_COLORS = [
-    ('ginger', 'Ginger', '#fb923c'),
+    ('orange', 'Orange', '#fb923c'),
     ('grey', 'Grey', '#94a3b8'),
     ('black', 'Black', '#475569'),
     ('white', 'White', '#e2e8f0'),
@@ -198,7 +198,7 @@ class Cat(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='cat'
     )
     name = models.CharField(max_length=40, default='Miso')
-    color = models.CharField(max_length=10, choices=COLOR_CHOICES, default='ginger')
+    color = models.CharField(max_length=10, choices=COLOR_CHOICES, default='orange')
     configured = models.BooleanField(default=False)  # completed onboarding?
     happiness = models.FloatField(default=70)
     satiety = models.FloatField(default=70)
@@ -214,7 +214,7 @@ class Cat(models.Model):
 
     @property
     def color_hex(self) -> str:
-        return COLOR_HEX.get(self.color, COLOR_HEX['ginger'])
+        return COLOR_HEX.get(self.color, COLOR_HEX['orange'])
 
     # -- mechanics ----------------------------------------------------------
     def refresh(self, *, commit=True):
@@ -251,6 +251,33 @@ class Cat(models.Model):
         return OwnedItem.objects.filter(
             user=self.user, item__category=ShopItem.ACCESSORY, equipped=True
         ).select_related('item')
+
+    # -- artwork ------------------------------------------------------------
+    # Fur colours that ship a full set of PNGs under static/cats/<colour>/.
+    # Colours not listed here fall back to the drawn SVG cat.
+    IMAGE_COLORS = {'orange', 'grey', 'black', 'white', 'cream', 'pink'}
+
+    @property
+    def has_images(self) -> bool:
+        return self.color in self.IMAGE_COLORS
+
+    def image_for(self, state) -> str:
+        """static-relative path for a mood/emote png, or '' if unavailable."""
+        if not self.has_images or not state:
+            return ''
+        return f'cats/{self.color}/{self.color}_{state}.png'
+
+    @property
+    def mood_image(self) -> str:
+        # 'away' keeps the emoji basket, so no image for it.
+        if self.mood == self.MOOD_AWAY:
+            return ''
+        return self.image_for(self.mood)
+
+    @property
+    def happy_image(self) -> str:
+        """The happy pose — used as the default art in the settings preview."""
+        return self.image_for('happy')
 
 
 class Task(models.Model):

@@ -1,8 +1,15 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}{% if first_time %}Meet your cat{% else %}Cat settings{% endif %} · Catodoro{% endblock %}
 
 {% block content %}
 <div class="mx-auto mt-8 max-w-lg">
+  {% if not first_time %}
+    <a href="{% url 'dashboard' %}"
+       class="mb-4 inline-flex items-center gap-1 text-sm font-medium text-stone-500 transition hover:text-pink-600">
+      ← Back to quests
+    </a>
+  {% endif %}
   <div class="rounded-3xl bg-white/80 p-7 shadow-lg ring-1 ring-pink-200">
     <div class="mb-5 text-center">
       <h1 class="text-xl font-bold text-stone-800">
@@ -15,11 +22,15 @@
     </div>
 
     <!-- live preview -->
+    {{ model_images|json_script:"model-images" }}
     <div class="mb-6 flex flex-col items-center">
       <div class="relative flex h-44 w-44 items-center justify-center">
         <div id="preview-glow" class="absolute h-28 w-28 rounded-full opacity-30 blur-2xl"
              style="background-color: {{ cat.color_hex }}"></div>
-        <div id="preview-cat" class="relative">
+        <img id="preview-img" alt=""
+             class="h-44 w-44 select-none object-contain {% if not cat.has_images %}hidden{% endif %}"
+             {% if cat.has_images %}src="{% static cat.happy_image %}"{% endif %}>
+        <div id="preview-svg" class="relative {% if cat.has_images %}hidden{% endif %}">
           {% include 'core/partials/cat_svg.html' with fur=cat.color_hex mood='content' %}
         </div>
       </div>
@@ -36,10 +47,10 @@
       </div>
 
       <div>
-        <label class="mb-2 block text-xs font-medium text-stone-500">Colour</label>
+        <label class="mb-2 block text-xs font-medium text-stone-500">Cat model</label>
         <div class="flex flex-wrap gap-3">
           {% for key, label, hex in colors %}
-            <label class="cursor-pointer" title="{{ label }}">
+            <label class="relative cursor-pointer" title="{{ label }}">
               <input type="radio" name="color" value="{{ key }}" class="peer sr-only"
                      data-hex="{{ hex }}" {% if cat.color == key %}checked{% endif %}>
               <span class="block h-10 w-10 rounded-full ring-2 ring-transparent ring-offset-2 ring-offset-white transition peer-checked:ring-pink-500 hover:scale-105"
@@ -60,14 +71,28 @@
 <script>
 (function () {
   var glow = document.getElementById('preview-glow');
+  var img = document.getElementById('preview-img');
+  var svg = document.getElementById('preview-svg');
   var nameOut = document.getElementById('preview-name');
   var nameIn = document.querySelector('input[name="name"]');
-  var furParts = document.querySelectorAll('#preview-cat .cat-fur');
+  var furParts = svg.querySelectorAll('.cat-fur');
+  var MODELS = JSON.parse(document.getElementById('model-images').textContent);
+
+  // Show the chosen model: the happy image when available, else the SVG.
+  function applyModel(color, hex) {
+    glow.style.backgroundColor = hex;
+    if (MODELS[color]) {
+      img.src = MODELS[color];
+      img.classList.remove('hidden');
+      svg.classList.add('hidden');
+    } else {
+      img.classList.add('hidden');
+      svg.classList.remove('hidden');
+      furParts.forEach(function (el) { el.setAttribute('fill', hex); });
+    }
+  }
   document.querySelectorAll('input[name="color"]').forEach(function (r) {
-    r.addEventListener('change', function () {
-      glow.style.backgroundColor = r.dataset.hex;
-      furParts.forEach(function (el) { el.setAttribute('fill', r.dataset.hex); });
-    });
+    r.addEventListener('change', function () { applyModel(r.value, r.dataset.hex); });
   });
   if (nameIn) {
     nameIn.addEventListener('input', function () {
