@@ -54,6 +54,10 @@ INSTALLED_APPS = [
     'django_htmx',
     'widget_tweaks',
     'core',
+    'cats',
+    'tasks',
+    'shop',
+    'achievements',
 ]
 
 MIDDLEWARE = [
@@ -136,7 +140,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.environ.get('CATODORO_STATIC_ROOT', str(BASE_DIR / 'staticfiles'))
-STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # In production (DEBUG off) serve collected static files straight from the app
 # process with WhiteNoise, so no separate web server / nginx is required.
