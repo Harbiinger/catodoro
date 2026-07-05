@@ -1,0 +1,8 @@
+{# A single headline metric card. Params: icon, label, value, sub (optional). #}
+<div class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-pink-100">
+  <div class="flex items-center gap-2 text-sm text-stone-400">
+    <span class="text-lg">{{ icon }}</span><span>{{ label }}</span>
+  </div>
+  <p class="mt-1 text-3xl font-bold text-stone-800">{{ value }}</p>
+  {% if sub %}<p class="mt-0.5 text-xs text-stone-400">{{ sub }}</p>{% endif %}
+</div>

@@ -65,6 +65,10 @@
                  class="flex items-center gap-2 px-4 py-2.5 text-sm text-stone-700 transition hover:bg-pink-50">🏆 Achievements</a>
               <a href="{% url 'setup' %}"
                  class="flex items-center gap-2 px-4 py-2.5 text-sm text-stone-700 transition hover:bg-pink-50">⚙ Cat settings</a>
+              {% if user.is_staff %}
+              <a href="{% url 'admin_dashboard' %}"
+                 class="flex items-center gap-2 px-4 py-2.5 text-sm text-stone-700 transition hover:bg-pink-50">📊 Admin dashboard</a>
+              {% endif %}
               <form action="{% url 'logout' %}" method="post" class="border-t border-pink-100">
                 {% csrf_token %}
                 <button type="submit"

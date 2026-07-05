@@ -8,4 +8,5 @@ urlpatterns = [
     path('', include('tasks.urls')),       # dashboard + quests
     path('', include('shop.urls')),        # shop + cat care
     path('', include('achievements.urls')),
+    path('', include('adminpanel.urls')),  # staff-only stats dashboard
 ]

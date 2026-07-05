@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% block title %}Admin dashboard · Catodoro{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-5xl">
+  <div class="mb-6 flex flex-wrap items-baseline justify-between gap-2">
+    <h1 class="text-2xl font-bold text-stone-800">📊 Admin dashboard</h1>
+    <span class="text-xs text-stone-400">as of {{ generated_at|date:"M j, Y · H:i" }}</span>
+  </div>
+
+  {# ---- headline numbers -------------------------------------------------- #}
+  <section class="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+    {% include 'adminpanel/stat.html' with icon='👥' label='Total users' value=users.total %}
+    {% include 'adminpanel/stat.html' with icon='🟢' label='Active (7d)' value=users.active_7d sub=users.active_7d_pct|stringformat:'d'|add:'% of users' %}
+    {% include 'adminpanel/stat.html' with icon='✅' label='Quests done' value=quests.done %}
+    {% include 'adminpanel/stat.html' with icon='🪙' label='Coins in economy' value=economy.coins_total %}
+  </section>
+
+  <div class="grid gap-6 lg:grid-cols-2">
+    {# ---- users ----------------------------------------------------------- #}
+    <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-pink-100">
+      <h2 class="mb-4 font-bold text-stone-800">👥 Users</h2>
+      <dl class="grid grid-cols-2 gap-3 text-sm">
+        <div class="rounded-xl bg-stone-50 p-3"><dt class="text-stone-400">Active today</dt><dd class="text-lg font-bold text-stone-800">{{ users.active_today }}</dd></div>
+        <div class="rounded-xl bg-stone-50 p-3"><dt class="text-stone-400">Active 30d</dt><dd class="text-lg font-bold text-stone-800">{{ users.active_30d }}</dd></div>
+        <div class="rounded-xl bg-stone-50 p-3"><dt class="text-stone-400">New this week</dt><dd class="text-lg font-bold text-stone-800">{{ users.new_7d }}</dd></div>
+        <div class="rounded-xl bg-stone-50 p-3"><dt class="text-stone-400">Staff</dt><dd class="text-lg font-bold text-stone-800">{{ users.staff }}</dd></div>
+        <div class="rounded-xl bg-stone-50 p-3"><dt class="text-stone-400">Longest streak</dt><dd class="text-lg font-bold text-stone-800">{{ users.longest_streak }} 🔥</dd></div>
+      </dl>
+    </article>
+
+    {# ---- quests ---------------------------------------------------------- #}
+    <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-pink-100">
+      <h2 class="mb-4 flex items-baseline justify-between font-bold text-stone-800">
+        <span>⚔️ Quests</span>
+        <span class="text-sm font-normal text-stone-400">{{ quests.total }} total</span>
+      </h2>
+      <dl class="mb-4 grid grid-cols-3 gap-3 text-sm">
+        <div class="rounded-xl bg-emerald-50 p-3"><dt class="text-emerald-600">Done</dt><dd class="text-lg font-bold text-emerald-700">{{ quests.done }}</dd></div>
+        <div class="rounded-xl bg-sky-50 p-3"><dt class="text-sky-600">Active</dt><dd class="text-lg font-bold text-sky-700">{{ quests.active }}</dd></div>
+        <div class="rounded-xl bg-rose-50 p-3"><dt class="text-rose-500">Failed</dt><dd class="text-lg font-bold text-rose-600">{{ quests.failed }}</dd></div>
+      </dl>
+      <div class="mb-3">
+        <div class="mb-1 flex justify-between text-xs text-stone-400">
+          <span>Completion rate</span><span>{{ quests.completion_rate }}%</span>
+        </div>
+        <div class="h-2 w-full overflow-hidden rounded-full bg-stone-200">
+          <div class="h-full rounded-full bg-emerald-400" style="width: {{ quests.completion_rate }}%"></div>
+        </div>
+      </div>
+      <p class="mb-3 text-xs text-stone-400">By difficulty</p>
+      {% for d in quests.by_difficulty %}
+        <div class="mb-2">
+          <div class="mb-1 flex justify-between text-xs text-stone-500"><span>{{ d.label }}</span><span>{{ d.count }}</span></div>
+          <div class="h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
+            <div class="h-full rounded-full bg-pink-400" style="width: {{ d.pct }}%"></div>
+          </div>
+        </div>
+      {% endfor %}
+      <dl class="mt-4 grid grid-cols-3 gap-3 text-sm">
+        <div class="rounded-xl bg-stone-50 p-3"><dt class="text-stone-400">Overdue</dt><dd class="font-bold text-stone-800">{{ quests.overdue }}</dd></div>
+        <div class="rounded-xl bg-stone-50 p-3"><dt class="text-stone-400">🍅 Pomodoros</dt><dd class="font-bold text-stone-800">{{ quests.pomodoros }}</dd></div>
+        <div class="rounded-xl bg-stone-50 p-3"><dt class="text-stone-400">Coins paid</dt><dd class="font-bold text-stone-800">{{ quests.coins_earned }}</dd></div>
+      </dl>
+    </article>
+
+    {# ---- cats ------------------------------------------------------------ #}
+    <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-pink-100">
+      <h2 class="mb-4 flex items-baseline justify-between font-bold text-stone-800">
+        <span>🐱 Cats</span>
+        <span class="text-sm font-normal text-stone-400">{{ cats.configured }} / {{ cats.total }} configured</span>
+      </h2>
+      <dl class="mb-4 grid grid-cols-2 gap-3 text-sm">
+        <div class="rounded-xl bg-amber-50 p-3"><dt class="text-amber-600">Avg happiness</dt><dd class="text-lg font-bold text-amber-700">{{ cats.avg_happiness }}%</dd></div>
+        <div class="rounded-xl bg-orange-50 p-3"><dt class="text-orange-600">Avg fullness</dt><dd class="text-lg font-bold text-orange-700">{{ cats.avg_satiety }}%</dd></div>
+      </dl>
+      <p class="mb-2 text-xs text-stone-400">Moods</p>
+      <div class="mb-4 flex flex-wrap gap-2">
+        {% for m in cats.moods %}
+          <span class="rounded-full bg-stone-100 px-2.5 py-1 text-xs text-stone-600">{{ m.mood }} · {{ m.count }}</span>
+        {% empty %}
+          <span class="text-xs text-stone-400">No cats yet.</span>
+        {% endfor %}
+      </div>
+      <p class="mb-2 text-xs text-stone-400">Fur colours</p>
+      {% for c in cats.by_color %}
+        <div class="mb-2">
+          <div class="mb-1 flex justify-between text-xs text-stone-500">
+            <span class="flex items-center gap-1.5"><span class="inline-block h-2.5 w-2.5 rounded-full" style="background: {{ c.hex }}"></span>{{ c.label }}</span>
+            <span>{{ c.count }}</span>
+          </div>
+          <div class="h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
+            <div class="h-full rounded-full" style="width: {{ c.pct }}%; background: {{ c.hex }}"></div>
+          </div>
+        </div>
+      {% endfor %}
+    </article>
+
+    {# ---- economy & achievements ------------------------------------------ #}
+    <article class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-pink-100">
+      <h2 class="mb-4 font-bold text-stone-800">🛍️ Shop &amp; economy</h2>
+      <dl class="mb-4 grid grid-cols-2 gap-3 text-sm">
+        <div class="rounded-xl bg-stone-50 p-3"><dt class="text-stone-400">Coins total</dt><dd class="text-lg font-bold text-stone-800">{{ economy.coins_total }} 🪙</dd></div>
+        <div class="rounded-xl bg-stone-50 p-3"><dt class="text-stone-400">Avg / player</dt><dd class="text-lg font-bold text-stone-800">{{ economy.coins_avg }} 🪙</dd></div>
+        <div class="rounded-xl bg-stone-50 p-3"><dt class="text-stone-400">Catalogue</dt><dd class="text-lg font-bold text-stone-800">{{ economy.catalogue_size }}</dd></div>
+        <div class="rounded-xl bg-stone-50 p-3"><dt class="text-stone-400">Items owned</dt><dd class="text-lg font-bold text-stone-800">{{ economy.items_owned }}</dd></div>
+      </dl>
+      <p class="mb-2 text-xs text-stone-400">Top sellers</p>
+      <ul class="mb-5 space-y-1 text-sm">
+        {% for item in economy.top_items %}
+          <li class="flex justify-between"><span>{{ item.icon }} {{ item.name }}</span><span class="font-semibold text-stone-700">{{ item.sold }}</span></li>
+        {% empty %}
+          <li class="text-xs text-stone-400">Nothing bought yet.</li>
+        {% endfor %}
+      </ul>
+
+      <h2 class="mb-3 flex items-baseline justify-between border-t border-pink-100 pt-4 font-bold text-stone-800">
+        <span>🏆 Achievements</span>
+        <span class="text-sm font-normal text-stone-400">{{ achievements.active }} / {{ achievements.total }} active</span>
+      </h2>
+      <dl class="mb-4 grid grid-cols-2 gap-3 text-sm">
+        <div class="rounded-xl bg-stone-50 p-3"><dt class="text-stone-400">Total unlocks</dt><dd class="text-lg font-bold text-stone-800">{{ achievements.unlocks }}</dd></div>
+        <div class="rounded-xl bg-stone-50 p-3"><dt class="text-stone-400">Avg / user</dt><dd class="text-lg font-bold text-stone-800">{{ achievements.avg_per_user }}</dd></div>
+      </dl>
+      <p class="mb-2 text-xs text-stone-400">Most unlocked</p>
+      <ul class="space-y-1 text-sm">
+        {% for ach in achievements.top %}
+          <li class="flex justify-between"><span>{{ ach.icon }} {{ ach.name }}</span><span class="font-semibold text-stone-700">{{ ach.n }}</span></li>
+        {% empty %}
+          <li class="text-xs text-stone-400">No unlocks yet.</li>
+        {% endfor %}
+      </ul>
+    </article>
+  </div>
+</div>
+{% endblock %}
