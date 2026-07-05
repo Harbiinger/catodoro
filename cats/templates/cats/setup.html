@@ -29,7 +29,7 @@
              style="background-color: {{ cat.color_hex }}"></div>
         <img id="preview-img" alt=""
              class="h-44 w-44 select-none object-contain {% if not cat.has_images %}hidden{% endif %}"
-             {% if cat.has_images %}src="{% static cat.happy_image %}"{% endif %}>
+             {% if cat.has_images %}src="{% static cat.content_image %}"{% endif %}>
         <div id="preview-svg" class="relative {% if cat.has_images %}hidden{% endif %}">
           {% include 'cats/partials/cat_svg.html' with fur=cat.color_hex mood='content' %}
         </div>

@@ -145,5 +145,10 @@ class Cat(models.Model):
 
     @property
     def happy_image(self) -> str:
-        """The happy pose — used as the default art in the settings preview."""
+        """The happy pose."""
         return self.image_for('happy')
+
+    @property
+    def content_image(self) -> str:
+        """The content pose — the default art in the settings preview."""
+        return self.image_for('content')
