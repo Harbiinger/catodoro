@@ -62,7 +62,7 @@
         installPhase = ''
           runHook preInstall
           mkdir -p $out/share/catodoro
-          cp -r catodoro core cats tasks shop achievements templates manage.py staticfiles $out/share/catodoro/
+          cp -r catodoro core cats tasks shop achievements adminpanel templates manage.py staticfiles $out/share/catodoro/
           runHook postInstall
         '';
       };
